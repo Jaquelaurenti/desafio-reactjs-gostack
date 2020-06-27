@@ -1,28 +1,45 @@
-import React from "react";
+import React, { useState, useEffect} from "react";
 
 import "./styles.css";
+import api from "./services/api";
 
 function App() {
+  const [repository, setRepository] = useState([])
+  useEffect(() => {
+    api.get('repositories').then(res => {
+      setRepository(res.data);
+    })
+  }, []);
+
   async function handleAddRepository() {
-    // TODO
+    const response = await api.post('repositories', {
+      url: "https://github.com/Rocketseat/umbriel",
+      title: `Repositorie ${Date.now()}`,
+      techs: "Node",
+    });
+    const repo = response.data;
+    setRepository([...repository, repo]);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    try{
+      await api.delete(`repositories/${id}`);
+      setRepository(repository.filter(repo => repo.id !== id));
+    } catch (err){
+        alert('Erro ao deletar repositorio, tente novamente');
+    }
   }
-
+  
   return (
     <div>
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
-
-          <button onClick={() => handleRemoveRepository(1)}>
+        {repository.map(repo => <li key={repo.id}>
+          {repo.title}
+          <button onClick={() => handleRemoveRepository(repo.id)}>
             Remover
           </button>
-        </li>
+        </li>)}
       </ul>
-
       <button onClick={handleAddRepository}>Adicionar</button>
     </div>
   );
